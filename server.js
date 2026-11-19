@@ -9,9 +9,9 @@ const port = process.env.PORT || 3000;
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
 
 createServer(async (req, res) => {
-  let path = normalize(decodeURIComponent(req.url.split('?')[0]));
-  if (path.endsWith('/')) path += 'index.html';
-  const file = join(root, path);
+    let urlPath = decodeURIComponent(req.url.split('?')[0]);
+  if (urlPath.endsWith('/')) urlPath += 'index.html';
+  const file = join(root, normalize(urlPath));
   if (!file.startsWith(root)) return res.writeHead(403).end();
   try {
     const body = await readFile(file);
