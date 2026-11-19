@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mug Shop — Checkout</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <!-- FIX 1: real landmarks and a real heading -->
+  <main class="page">
+    <h1 class="title">Checkout</h1>
+
+    <section class="product" aria-labelledby="product-name">
+      <h2 id="product-name">Blue Ceramic Mug — £12</h2>
+      <!-- FIX 2: icon buttons get accessible names -->
+      <div class="qty">
+        <button type="button" class="icon" aria-label="Decrease quantity" onclick="changeQty(-1)">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16"><path d="M5 12h14" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+        <output id="qty" aria-label="Quantity">1</output>
+        <button type="button" class="icon" aria-label="Increase quantity" onclick="changeQty(1)">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!--
+      Optional WebMCP declarative annotations (toolname / tooldescription /
+      toolparamdescription). Browsers that don't support WebMCP ignore them.
+      The spec is still a draft: check the current attribute names before publishing.
+    -->
+    <form id="checkout"
+          toolname="place-order"
+          tooldescription="Place an order for the blue ceramic mug with the given email, name and delivery option.">
+      <!-- FIX 3: visible labels -->
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" autocomplete="email" required
+             toolparamdescription="Customer email address for the order confirmation.">
+
+      <label for="name">Full name</label>
+      <input type="text" id="name" name="name" autocomplete="name" required
+             toolparamdescription="Customer full name.">
+
+      <!-- FIX 4: a native select instead of a div "dropdown" -->
+      <label for="shipping">Delivery</label>
+      <select id="shipping" name="shipping"
+              toolparamdescription="Delivery speed: standard or express.">
+        <option value="standard">Standard delivery</option>
+        <option value="express">Express delivery</option>
+      </select>
+
+      <!-- FIX 5: a real submit button -->
+      <button type="submit" class="btn">Place order</button>
+    </form>
+
+    <!-- FIX 6: status is announced to screen readers (and readable by agents) -->
+    <p id="status" role="status"></p>
+  </main>
+
+  <script type="module">
+    let qty = 1;
+    const qtyEl = document.getElementById('qty');
+    window.changeQty = (d) => { qty = Math.max(1, qty + d); qtyEl.textContent = qty; };
+
+    const form = document.getElementById('checkout');
+    const status = document.getElementById('status');
+
+    function placeOrder({ email, name, shipping }) {
+      const msg = `Order placed for ${qty} mug(s), ${shipping} delivery, confirmation to ${email}.`;
+      status.textContent = msg;
+      return msg;
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!form.reportValidity()) return;
+      const data = Object.fromEntries(new FormData(form));
+      placeOrder(data);
+    });
+
+    // Optional WebMCP imperative tool, feature-detected.
+    // The API moved from navigator.modelContext to document.modelContext in
+    // later drafts, so check both. Does nothing in browsers without WebMCP.
+    const modelContext = document.modelContext ?? navigator.modelContext;
+    if (modelContext?.registerTool) {
+      modelContext.registerTool({
+        name: 'set-quantity',
+        description: 'Set how many blue ceramic mugs to order (1 to 10).',
+        inputSchema: {
+          type: 'object',
+          properties: { quantity: { type: 'integer', minimum: 1, maximum: 10 } },
+          required: ['quantity'],
+        },
+        async execute({ quantity }) {
+          qty = quantity;
+          qtyEl.textContent = qty; // same UI update a human would see
+          return { content: [{ type: 'text', text: `Quantity set to ${qty}.` }] };
+        },
+      });
+    }
+  </script>
+</body>
+</html>

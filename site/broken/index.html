@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mug Shop — Checkout (broken)</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <!-- BREAKAGE 1: no landmarks, heading is a styled div -->
+  <div class="page">
+    <div class="title">Checkout</div>
+
+    <div class="product">
+      <span>Blue Ceramic Mug — £12</span>
+      <!-- BREAKAGE 2: icon-only buttons with no accessible name -->
+      <span class="qty">
+        <button type="button" class="icon" onclick="changeQty(-1)">
+          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 12h14" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+        <span id="qty">1</span>
+        <button type="button" class="icon" onclick="changeQty(1)">
+          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+      </span>
+    </div>
+
+    <form id="checkout" onsubmit="return false">
+      <!-- BREAKAGE 3: placeholder used instead of a label -->
+      <input type="email" id="email" placeholder="Email">
+      <input type="text" id="name" placeholder="Full name">
+
+      <!-- BREAKAGE 4: custom "dropdown" built from divs: no role, no state, no keyboard -->
+      <div class="fake-select" onclick="toggleShipping()">
+        <div id="shipping-value">Standard delivery</div>
+        <div class="options" id="shipping-options" hidden>
+          <div onclick="pickShipping(event, 'Standard delivery')">Standard delivery</div>
+          <div onclick="pickShipping(event, 'Express delivery')">Express delivery</div>
+        </div>
+      </div>
+
+      <!-- BREAKAGE 5: "button" is a div with a click handler -->
+      <div class="btn" onclick="placeOrder()">Place order</div>
+    </form>
+
+    <!-- BREAKAGE 6: status message not announced -->
+    <div id="status"></div>
+  </div>
+
+  <script>
+    let qty = 1;
+    function changeQty(d) { qty = Math.max(1, qty + d); document.getElementById('qty').textContent = qty; }
+    function toggleShipping() { const o = document.getElementById('shipping-options'); o.hidden = !o.hidden; }
+    function pickShipping(e, v) { e.stopPropagation(); document.getElementById('shipping-value').textContent = v; toggleShipping(); }
+    function placeOrder() {
+      const email = document.getElementById('email').value;
+      document.getElementById('status').textContent = email ? `Order placed for ${qty} mug(s).` : 'Please enter your email.';
+    }
+  </script>
+</body>
+</html>
